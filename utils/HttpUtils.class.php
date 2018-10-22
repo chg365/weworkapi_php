@@ -8,9 +8,8 @@ class HttpUtils
 	// 
 	// public:
 	// 
-	static public function MakeUrl($queryArgs)
+	static public function MakeUrl($queryArgs, $base = 'https://qyapi.weixin.qq.com')
 	{
-		$base = "https://qyapi.weixin.qq.com";
 		if (substr($queryArgs, 0, 1) === "/")
 			return $base . $queryArgs;
 		return $base . "/" . $queryArgs;

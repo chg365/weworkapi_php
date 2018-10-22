@@ -47,7 +47,7 @@ class ServiceProviderAPI extends API
             "corpid" => $this->corpid, 
             "provider_secret" => $this->provider_secret
         ); 
-        $url = HttpUtils::MakeUrl("/cgi-bin/service/get_provider_token");
+        $url = HttpUtils::MakeUrl("/cgi-bin/service/get_provider_token", $this->baseUrl);
         $this->_HttpPostParseToJson($url, $args, false);
         $this->_CheckErrCode();
 

@@ -71,7 +71,8 @@ class CorpAPI extends API
             throw new ParameterError("invalid corpid or secret");
 
         $url = HttpUtils::MakeUrl(
-            "/cgi-bin/gettoken?corpid={$this->corpId}&corpsecret={$this->secret}");
+            "/cgi-bin/gettoken?corpid={$this->corpId}&corpsecret={$this->secret}",
+            $this->baseUrl);
         $this->_HttpGetParseToJson($url, false);
         $this->_CheckErrCode();
 
@@ -437,7 +438,7 @@ class CorpAPI extends API
 
         $args = Utils::Object2Array($batchJobArgs);
 
-        $url = HttpUtils::MakeUrl("/cgi-bin/batch/{$jobType}?access_token=ACCESS_TOKEN");
+        $url = HttpUtils::MakeUrl("/cgi-bin/batch/{$jobType}?access_token=ACCESS_TOKEN", $this->baseUrl);
         $this->_HttpPostParseToJson($url, $args);
         $this->_CheckErrCode();
 
@@ -691,7 +692,7 @@ class CorpAPI extends API
             $args = array('media' => '@' . realpath($filePath));
         }
 
-        $url = HttpUtils::MakeUrl("/cgi-bin/media/upload?access_token=ACCESS_TOKEN&type={$type}");
+        $url = HttpUtils::MakeUrl("/cgi-bin/media/upload?access_token=ACCESS_TOKEN&type={$type}", $this->baseUrl);
         $this->_HttpPostParseToJson($url, $args, true, true/*isPostFile*/);
         $this->_CheckErrCode();
 
@@ -756,7 +757,7 @@ class CorpAPI extends API
 
         var_dump($args);
 
-        $url = HttpUtils::MakeUrl("/cgi-bin/media/uploadimg?access_token=ACCESS_TOKEN");
+        $url = HttpUtils::MakeUrl("/cgi-bin/media/uploadimg?access_token=ACCESS_TOKEN", $this->baseUrl);
         if ($md5 != null) { 
             $url = $url . "&md5={$md5}";
         }

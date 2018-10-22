@@ -58,7 +58,7 @@ class ServiceCorpAPI extends CorpAPI
             "auth_corpid" => $this->authCorpId, 
             "permanent_code" => $this->permanentCode
         ); 
-        $url = HttpUtils::MakeUrl("/cgi-bin/service/get_corp_token?suite_access_token=SUITE_ACCESS_TOKEN");
+        $url = HttpUtils::MakeUrl("/cgi-bin/service/get_corp_token?suite_access_token=SUITE_ACCESS_TOKEN", $this->baseUrl);
         $this->_HttpPostParseToJson($url, $args, false);
         $this->_CheckErrCode();
 
@@ -91,7 +91,7 @@ class ServiceCorpAPI extends CorpAPI
             "suite_secret" => $this->suite_secret,
             "suite_ticket" => $this->suite_ticket,
         ); 
-        $url = HttpUtils::MakeUrl("/cgi-bin/service/get_suite_token");
+        $url = HttpUtils::MakeUrl("/cgi-bin/service/get_suite_token", $this->baseUrl);
         $this->_HttpPostParseToJson($url, $args, false);
         $this->_CheckErrCode();
 

@@ -8,6 +8,7 @@ abstract class API
 {
     public $rspJson = null;
     public $rspRawStr = null;
+    public $baseUrl  = 'https://qyapi.weixin.qq.com';
 
     const USER_CREATE       = '/cgi-bin/user/create?access_token=ACCESS_TOKEN';
     const USER_GET          = '/cgi-bin/user/get?access_token=ACCESS_TOKEN';
@@ -90,7 +91,7 @@ abstract class API
     protected function _HttpCall($url, $method, $args)
     {
         if ('POST' == $method) { 
-            $url = HttpUtils::MakeUrl($url);
+            $url = HttpUtils::MakeUrl($url, $this->baseUrl);
             $this->_HttpPostParseToJson($url, $args);
             $this->_CheckErrCode();
         } else if ('GET' == $method) { 
@@ -104,7 +105,7 @@ abstract class API
                     }
                 }
             }
-            $url = HttpUtils::MakeUrl($url);
+            $url = HttpUtils::MakeUrl($url, $this->baseUrl);
             $this->_HttpGetParseToJson($url);
             $this->_CheckErrCode();
         } else { 
@@ -241,5 +242,23 @@ abstract class API
         if ($errCode != 0)
             throw new QyApiError("response error:" . $raw);
     }
+    // {{{ public function setBaseUrl()
+
+    /**
+     * 设置BaseUrl
+     *
+     * @param string $baseUrl
+     * @return boolean
+     * @throw ParameterError
+     */
+    public function setBaseUrl($baseUrl)
+    {
+        if (!filter_var($baseUrl, FILTER_VALIDATE_URL)) {
+            throw new ParameterError('invalid url');
+        }
+        $this->baseUrl = $baseUrl;
+    }
+
+    // }}}}
 
 }
