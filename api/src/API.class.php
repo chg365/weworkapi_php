@@ -9,6 +9,7 @@ abstract class API
     public $rspJson = null;
     public $rspRawStr = null;
     public $baseUrl  = 'https://qyapi.weixin.qq.com';
+    protected $_TokenCacheObject = null;
 
     const USER_CREATE       = '/cgi-bin/user/create?access_token=ACCESS_TOKEN';
     const USER_GET          = '/cgi-bin/user/get?access_token=ACCESS_TOKEN';
@@ -242,6 +243,49 @@ abstract class API
         if ($errCode != 0)
             throw new QyApiError("response error:" . $raw);
     }
+    // {{{ protected function _CreateTokenKey($string, $prefix = '')
+    protected function _CreateTokenKey($string, $prefix = '')
+    {
+        $key = crc32($string);
+        return $prefix . $key;
+    }
+    // }}}
+    // {{{ protected function _GetCacheToken($key)
+    protected function _GetCacheToken($key)
+    {
+        if ($this->_TokenCacheObject instanceof TokenCacheInterface) {
+            return $this->_TokenCacheObject->get($key);
+        }
+        return null;
+    }
+    // }}}
+    // {{{ protected function _setCacheToken($key, $value, $expire)
+    protected function _setCacheToken($key, $value, $expire)
+    {
+        if ($this->_TokenCacheObject instanceof TokenCacheInterface) {
+            return $this->_TokenCacheObject->set($key, $value, $expire);
+        }
+        return false;
+    }
+    // }}}
+    // {{{ public function setTokenCacheObj()
+
+    /**
+     * 设置TokenCache
+     *
+     * @param \TokenCacheInterface $obj
+     * @return boolean
+     */
+    public function setTokenCacheObj($obj)
+    {
+        if ($obj instanceof TokenCacheInterface) {
+            $this->_TokenCacheObject = $obj;
+            return true;
+        }
+        return false;
+    }
+
+    // }}}}
     // {{{ public function setBaseUrl()
 
     /**

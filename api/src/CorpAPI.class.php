@@ -36,6 +36,8 @@ class CorpAPI extends API
     private $corpId = null;
     private $secret = null;
     protected $accessToken = null;
+    protected $tokenKey = null;
+    protected $tokenKeyPrefix = 'wwcs_'; // WeWork Corpid Secret
 
     /**
      * @brief __construct : 构造函数，
@@ -48,10 +50,20 @@ class CorpAPI extends API
 
         $this->corpId = $corpId;
         $this->secret = $secret;
+
+        $this->InitTokenKey();
     }
 
 
     // ------------------------- access token ---------------------------------
+    /**
+     *
+     *
+     */
+    protected function InitTokenKey()
+    {
+        $this->tokenKey = $this->_CreateTokenKey($this->corpId . $this->secret, $this->tokenKeyPrefix);
+    }
     /**
      * @brief GetAccessToken : 获取 accesstoken，不用主动调用
      *
@@ -59,9 +71,14 @@ class CorpAPI extends API
      */
     protected function GetAccessToken()
     {
-        if ( ! Utils::notEmptyStr($this->accessToken)) { 
-            $this->RefreshAccessToken();
-        } 
+        if ( ! Utils::notEmptyStr($this->accessToken)) {
+            $accessToken = $this->_GetCacheToken($this->tokenKey);
+            if ($accessToken) {
+                $this->accessToken = $accessToken;
+            } else {
+                $this->RefreshAccessToken();
+            }
+        }
         return $this->accessToken;
     }
 
@@ -77,6 +94,8 @@ class CorpAPI extends API
         $this->_CheckErrCode();
 
         $this->accessToken = $this->rspJson["access_token"];
+
+        $this->_SetCacheToken($this->tokenKey, $this->accessToken, $this->rspJson['expires_in']);
     }
 
     // ------------------------- 成员管理 -------------------------------------

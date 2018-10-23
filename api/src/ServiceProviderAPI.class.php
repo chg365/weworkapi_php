@@ -15,12 +15,16 @@ include_once(__DIR__."/../../utils/HttpUtils.class.php");
 include_once(__DIR__."/../../utils/error.inc.php");
 
 include_once(__DIR__."/../datastructure/ServiceProvider.class.php");
+include_once(__DIR__."/API.class.php");
 
 class ServiceProviderAPI extends API
 {
     private $corpid = null; // string
     private $provider_secret = null; // string
     private $provider_access_token = null; // string
+
+    protected $providerTokenKey = null;
+    protected $providerTokenKeyPrefix = 'wwcps_'; //WeWork Corpid Provider Secret
 
     /**
      * 调用SetAgentScope/SetContactSyncSuccess 两个接口可以不用传corpid/provider_secret
@@ -29,12 +33,24 @@ class ServiceProviderAPI extends API
     {
         $this->corpid = $corpid;
         $this->provider_secret = $provider_secret;
+
+        $this->InitProviderTokenKey();
+    }
+
+    protected function InitProviderTokenKey()
+    {
+        $this->providerTokenKey = $this->_CreateTokenKey($this->corpid . $this->provider_secret, $this->providerTokenKeyPrefix);
     }
 
     protected function GetProviderAccessToken()
     { 
         if ( ! Utils::notEmptyStr($this->provider_access_token)) { 
-            $this->RefreshProviderAccessToken();
+            $providerAccessToken = $this->_GetCacheToken($this->providerTokenKey);
+            if ($providerAccessToken) {
+                $this->provider_access_token = $providerAccessToken;
+            } else {
+                $this->RefreshProviderAccessToken();
+            }
         } 
         return $this->provider_access_token;
     }
@@ -52,6 +68,8 @@ class ServiceProviderAPI extends API
         $this->_CheckErrCode();
 
         $this->provider_access_token = $this->rspJson["provider_access_token"];
+
+        $this->_SetCacheToken($this->providerTokenKey, $this->provider_access_token, $this->rspJson['expires_in']);
     }
 
     // ------------------------- 单点登录 -------------------------------------

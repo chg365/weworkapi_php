@@ -16,7 +16,7 @@ include_once(__DIR__."/../../utils/error.inc.php");
 
 include_once(__DIR__."/../datastructure/ServiceCorp.class.php");
 
-include_once(__DIR__."/API.class.php");
+include_once(__DIR__."/CorpAPI.class.php");
 
 class ServiceCorpAPI extends CorpAPI 
 {
@@ -28,6 +28,10 @@ class ServiceCorpAPI extends CorpAPI
     private $permanentCode = null; // string 
 
     private $suiteAccessToken = null; // string
+
+    protected $tokenKeyPrefix = 'wwacpc_'; // WeWork Auth Corpid PermanentCode
+    protected $suiteTokenKeyPrefix = 'wwsst_'; // WeWork Suiteid  Secret Ticket
+    protected $suiteTokenKey = null;
 
     public function __construct(
         $suite_id=null, 
@@ -43,6 +47,15 @@ class ServiceCorpAPI extends CorpAPI
         // 调用 CorpAPI 的function， 需要设置这两个参数
         $this->authCorpId = $authCorpId;
         $this->permanentCode = $permanentCode;
+
+        $this->InitTokenKey();
+    }
+
+    protected function InitTokenKey()
+    {
+        $this->tokenKey = $this->_CreateTokenKey($this->authCorpId . $this->permanentCode, $this->tokenKeyPrefix);
+        $str = $this->suite_id . $this->suite_secret . $this->suite_ticket;
+        $this->suiteTokenKey = $this->_CreateTokenKey($str, $this->suiteTokenKeyPrefix);
     }
 
     /**
@@ -63,6 +76,8 @@ class ServiceCorpAPI extends CorpAPI
         $this->_CheckErrCode();
 
         $this->accessToken = $this->rspJson["access_token"];
+
+        $this->_SetCacheToken($this->tokenKey, $this->accessToken, $this->rspJson['expires_in']);
     }
 
     /**
@@ -77,7 +92,12 @@ class ServiceCorpAPI extends CorpAPI
     protected function GetSuiteAccessToken()
     { 
         if ( ! Utils::notEmptyStr($this->suiteAccessToken)) { 
-            $this->RefreshSuiteAccessToken();
+            $suiteAccessToken = $this->_GetCacheToken($this->suiteTokenKey);
+            if ($suiteAccessToken) {
+                $this->suiteAccessToken = $suiteAccessToken;
+            } else {
+                $this->RefreshSuiteAccessToken();
+            }
         } 
         return $this->suiteAccessToken;
     }
@@ -96,6 +116,8 @@ class ServiceCorpAPI extends CorpAPI
         $this->_CheckErrCode();
 
         $this->suiteAccessToken= $this->rspJson["suite_access_token"];
+
+        $this->_SetCacheToken($this->suiteTokenKey, $this->suiteAccessToken, $this->rspJson['expires_in']);
     }
 
     // ---------------------- 第三方开放接口 ----------------------------------
