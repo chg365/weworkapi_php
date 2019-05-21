@@ -5,6 +5,9 @@ include_once(__DIR__."/error.inc.php");
 
 class HttpUtils
 {
+    protected static $ch = null;
+    protected static $use_keepalive = true;
+
 	// 
 	// public:
 	// 
@@ -70,14 +73,16 @@ class HttpUtils
         }
 
 		self::__checkDeps();
-        $ch = curl_init();
+        if (!self::$ch || !is_resource(self::$ch)) {
+            self::$ch = curl_init();
+        }
 
-		self::__setSSLOpts($ch, $url);
+		self::__setSSLOpts(self::$ch, $url);
 
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt(self::$ch, CURLOPT_URL, $url);
+        curl_setopt(self::$ch, CURLOPT_RETURNTRANSFER, 1);
 
-        return self::__exec($ch);
+        return self::__exec(self::$ch);
 	}
 
 	/**
@@ -94,16 +99,18 @@ class HttpUtils
         }
 
 		self::__checkDeps();
-		$ch = curl_init();
+        if (!self::$ch || !is_resource(self::$ch)) {
+            self::$ch = curl_init();
+        }
 
-		self::__setSSLOpts($ch, $url);
+		self::__setSSLOpts(self::$ch, $url);
 
-		curl_setopt($ch, CURLOPT_URL, $url);
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-		curl_setopt($ch, CURLOPT_POST, true);
-		curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
+		curl_setopt(self::$ch, CURLOPT_URL, $url);
+		curl_setopt(self::$ch, CURLOPT_RETURNTRANSFER, 1);
+		curl_setopt(self::$ch, CURLOPT_POST, true);
+		curl_setopt(self::$ch, CURLOPT_POSTFIELDS, $postData);
 		
-		return self::__exec($ch);
+		return self::__exec(self::$ch);
 	}
 
 	// 
@@ -123,7 +130,9 @@ class HttpUtils
 	{
 		$output = curl_exec($ch);
 		$status = curl_getinfo($ch);
-		curl_close($ch);
+        if (!self::$use_keepalive) {
+            curl_close($ch);
+        }
 
 		if ($output === false) {
 			throw new NetWorkError("network error");
@@ -143,4 +152,8 @@ class HttpUtils
 			throw new InternalError("missing curl extend");
 		}
 	}
+
+    static public function setKeepAlive($keepalive) {
+        self::$use_keepalive = (bool)$keepalive;
+    }
 }
